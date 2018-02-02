@@ -1,0 +1,6 @@
+1. map<hashes,values> // eg 3gb.
+2. cpuen hasher
+3. overfører du hashen til gpuen
+4. gpuen søger efter hash match
+5. overfør muligt resultat til ram
+
