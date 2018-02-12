@@ -1,0 +1,12 @@
+#clone
+git clone https://github.com/llvm-mirror/llvm.git
+
+#compile
+cd llvm
+mkdir llvm-build
+cd llvm-build
+cmake -G"Unix Makefiles" ..
+cmake --build .
+
+#setup
+cmake --build . --target install
