@@ -1,10 +1,10 @@
 #include <iostream>
 #include <array>
 
-#include "sgl/array.hpp"
+#include "yagal/array.hpp"
 
 template<typename T, long unsigned int N>
-void printshit(const sgl::Array<T,N>& arr){
+void printshit(const yagal::Array<T,N>& arr){
 	std::cout << "[";
 	for(long unsigned int i = 0; i < N-1; i++){
 		std::cout << arr[i] << ", ";
@@ -15,15 +15,15 @@ void printshit(const sgl::Array<T,N>& arr){
 int main(int argc, char** argv){
 	std::array<int, 10> ar0{1,2,3,4,5,6,7,8,9,0};
 	
-	sgl::Array<int, 10> sglar0(ar0);
-	sgl::Array<int, 10> sglar1(sglar0);
-	sgl::Array<int, 10> sglar2({1,2,3,4,5,6,7,8,9,10});
-	sgl::Array<int, 10> sglar3;
+	yagal::Array<int, 10> sglar0(ar0);
+	yagal::Array<int, 10> sglar1(sglar0);
+	yagal::Array<int, 10> sglar2({1,2,3,4,5,6,7,8,9,10});
+	yagal::Array<int, 10> sglar3;
 
 	std::cout << "Copied from std::array:" << std::endl;
 	printshit(sglar0);
 
-	std::cout << "Copied from sgl::Array:" << std::endl;
+	std::cout << "Copied from yagal::Array:" << std::endl;
 	printshit(sglar1);
 
 	std::cout << "Constructed from list initializer:" << std::endl;

@@ -5,7 +5,7 @@
 
 #include <array>
 
-namespace sgl{
+namespace yagal{
     template<typename T, long unsigned int N>
     class Array{
         T* _device_ptr;
@@ -23,7 +23,7 @@ namespace sgl{
             memcpy(_device_ptr, source.data(), _alloc_size);
         }
 
-        Array(const sgl::Array<T,N>& other)
+        Array(const yagal::Array<T,N>& other)
             : Array()
         {
             memcpy(_device_ptr, other._device_ptr, _alloc_size);
