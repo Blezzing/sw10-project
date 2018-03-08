@@ -5,6 +5,7 @@
 
 
 void checkCudaErrors(CUresult err) {
+  std::cout << err << std::endl;
   assert(err == CUDA_SUCCESS);
 }
 

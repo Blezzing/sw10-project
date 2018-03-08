@@ -1,0 +1,5 @@
+#compile ll to ptx
+llc -mcpu=sm_20 kernel.ll -o kernel.ptx
+
+#compile host
+clang++ -stdlib=libstdc++ host.cpp -lcuda
