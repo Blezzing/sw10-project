@@ -14,10 +14,8 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
-//#include "llvm/IR/DebugInfo.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
-//#include "llvm/CodeGen/CommandFlags.def"
 
 
 namespace yagal::generator::llc{
@@ -54,50 +52,36 @@ namespace yagal::generator::llc{
 
         llvm::legacy::PassManager passManager;
 
-        //std::unique_ptr<llvm::Module> module;
-
         assert(targetMachine && "targetmachine is null");
-        //assert(module && "module is null");
 
         llvm::TargetLibraryInfoImpl tlii(llvm::Triple(module.getTargetTriple()));
-        //already done iirc
-        //module->setDataLayout(targetMachine->createDataLayout());
 
         passManager.add(new llvm::TargetLibraryInfoWrapperPass(tlii));
-
-        //huh?
-        //llvm::UpgradeDebugInfo(module);
-
-        //setFunctionAttributes(cpuStr, featureStr, module);
 
         llvm::SmallVector<char, 0> buffer;
         auto bufferStream = std::make_unique<llvm::raw_svector_ostream>(buffer);
         auto outputStream = bufferStream.get();
-        //llvm::raw_svector_ostream outputStream(buffer);
 
         llvm::LLVMTargetMachine &llvmtm = static_cast<llvm::LLVMTargetMachine&>(*targetMachine);
         llvm::MachineModuleInfo *mmi = new llvm::MachineModuleInfo(&llvmtm);
 
-
-        //denne linje virker bagvendt
         module.setDataLayout(targetMachine->createDataLayout());
         targetMachine->addPassesToEmitFile(passManager, *outputStream, llvm::TargetMachine::CGFT_AssemblyFile, false, mmi);
 
         //do it
         passManager.run(module);
+        _p.info("ir translated to ptx");
+
 
         return std::string(buffer.begin(), buffer.end());
     }
 
     std::string translate(llvm::LLVMContext& context, llvm::Module& module){
-        //dangerous?
-        //llvm::llvm_shutdown_obj scopedShutdown;
-
-
         LLVMInitializeNVPTXTargetInfo();
         LLVMInitializeNVPTXTarget();
         LLVMInitializeNVPTXTargetMC();
         LLVMInitializeNVPTXAsmPrinter();
+        _p.info("initialized llvm target");
 
         llvm::PassRegistry *registry = llvm::PassRegistry::getPassRegistry();
         llvm::initializeCore(*registry);

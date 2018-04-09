@@ -82,7 +82,9 @@ namespace yagal::generator{
         llvm::Module module("testModule", context);
 
         generateIR(context, module);
+        _p.debug() << "ir module:\n" << moduleToString(module) << std::endl;
         auto ptx = generatePTX(context, module);
+        _p.debug() << "ptx module:\n" << ptx << std::endl;
         return ptx;
     }
 }

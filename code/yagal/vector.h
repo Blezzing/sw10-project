@@ -40,7 +40,7 @@ namespace yagal{
         {}
 
         void dump(){
-            auto& o = _p.debug();
+            auto& o = _p.info();
             std::vector<T> v(*this);
             for (const T& e : v){
                 o << e << " ";

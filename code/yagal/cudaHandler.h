@@ -119,6 +119,7 @@ namespace yagal::cuda{
         void *KernelParams[] = {&data_ptr};
 
         // Kernel launch
+        _p.info() << "cuda kernel launching" << std::endl;
         checkCudaErrors(cuLaunchKernel(function, gridSizeX, gridSizeY, gridSizeZ,
                                         blockSizeX, blockSizeY, blockSizeZ,
                                         0, NULL, KernelParams, NULL));

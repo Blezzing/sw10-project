@@ -58,7 +58,7 @@ namespace yagal::printer {
             if (_mode == Mode::Silent || _mode == Mode::Standard) { 
                 return _nullStream;
             }
-            return std::cout << "[INFO]  " << _prefix << ": ";
+            return std::cout << "[INFO] " << _prefix << ": ";
         }
     };
 }
