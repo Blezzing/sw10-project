@@ -14,7 +14,6 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "llcReimpl.h"
-#include "types.h"
 
 namespace yagal::generator{
     std::string moduleToString(llvm::Module& module){
