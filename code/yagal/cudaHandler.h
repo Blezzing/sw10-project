@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-
+#include "printer.hpp"
 #include "cuda.h"
 
 namespace yagal::cuda{
     namespace {
-        static printer::Printer _p("cudaHandler", printer::Printer::Mode::Silent);
+        printer::Printer _p("cudaHandler", printer::Printer::Mode::Debug);
     }
 
     CUdevice   cudaDevice;

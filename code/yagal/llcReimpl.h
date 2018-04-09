@@ -2,6 +2,7 @@
 
 #include <string>
 #include <iostream>
+#include "printer.hpp"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManager.h"
@@ -21,7 +22,7 @@
 
 namespace yagal::generator::llc{
     namespace {
-        static printer::Printer _p("llc", printer::Printer::Mode::Silent);
+        printer::Printer _p("llc", printer::Printer::Mode::Debug);
     }
 
     std::string compileModule(llvm::LLVMContext& context, llvm::Module& module){

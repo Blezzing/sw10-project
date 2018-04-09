@@ -32,7 +32,7 @@ namespace yagal::printer {
 
 
     public:
-        Printer(std::string prefix, Mode mode = Mode::Standard)
+        Printer(const std::string& prefix, Mode mode = Mode::Standard)
         : _prefix(prefix), _mode(mode) { }
 
         void setMode(Mode mode) {
@@ -51,14 +51,14 @@ namespace yagal::printer {
             if (_mode != Mode::Debug) { 
                 return _nullStream;
             }
-            std::cout << "[DEBUG] " << _prefix << ": ";
+            return std::cout << "[DEBUG] " << _prefix << ": ";
         }
 
         std::ostream& info() {
             if (_mode == Mode::Silent || _mode == Mode::Standard) { 
                 return _nullStream;
             }
-            std::cout << "[INFO]  " << _prefix << ": ";
+            return std::cout << "[INFO]  " << _prefix << ": ";
         }
     };
 }

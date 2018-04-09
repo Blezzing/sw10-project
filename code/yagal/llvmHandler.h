@@ -14,10 +14,11 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "llcReimpl.h"
+#include "printer.hpp"
 
 namespace yagal::generator{
     namespace {
-        static printer::Printer _p("llvmHandler", printer::Printer::Mode::Silent);
+        printer::Printer _p("llvmHandler", printer::Printer::Mode::Debug);
     }
 
     std::string moduleToString(llvm::Module& module){

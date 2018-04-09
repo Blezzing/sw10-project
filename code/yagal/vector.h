@@ -5,15 +5,18 @@
 
 #include "cudaHandler.h"
 #include "llvmHandler.h"
+#include "printer.hpp"
 
 namespace yagal{
+    namespace {
+        printer::Printer _p("vector", printer::Printer::Mode::Silent);
+    }
     // Forward declaration
     template <typename T> class Vector;
 
     template <typename T>
     class Vector{
     private:
-        static printer::Printer _p("vector", printer::Printer::Mode::Silent);
         CUdeviceptr _devicePtr;
         size_t _count;
 
