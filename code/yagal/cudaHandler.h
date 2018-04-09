@@ -7,6 +7,10 @@
 #include "cuda.h"
 
 namespace yagal::cuda{
+    namespace {
+        static printer::Printer _p("cudaHandler", printer::Printer::Mode::Silent);
+    }
+
     CUdevice   cudaDevice;
     int        cudaDeviceCount(0);
     CUcontext  cudaContext;
@@ -14,16 +18,18 @@ namespace yagal::cuda{
     void checkCudaErrors(CUresult err, const std::string& sufix = "SOMEWHERE") {
         if(!err) return;
 
-        std::cerr << "CUDA ERROR: ";
+        auto& o = _p.error();
+
+        o << "CUDA ERROR: ";
 
         const char* str = NULL;
         cuGetErrorString(err, &str);
         if (!str){
-            std::cerr << "cuda error with unrecognized error value " << sufix << std::endl;
+            o << "cuda error with unrecognized error value " << sufix << std::endl;
             return;
         }
 
-        std::cout << str << " " << sufix << std::endl;
+        o << str << " " << sufix << std::endl;
 
         assert(err == CUDA_SUCCESS);
     }
@@ -35,11 +41,11 @@ namespace yagal::cuda{
             checkCudaErrors(cuInit(0));
             checkCudaErrors(cuDeviceGetCount(&cudaDeviceCount));
             checkCudaErrors(cuDeviceGet(&cudaDevice, 0));
-            std::cout << "cuda device initialized" << std::endl;
+            _p.info() << "cuda device initialized" << std::endl;
         }
 
         checkCudaErrors(cuCtxCreate(&cudaContext, 0, cudaDevice));
-        std::cout << "cuda context created" << std::endl;
+        _p.info() << "cuda context created" << std::endl;
     }
 
     void checkDevice(){
@@ -47,13 +53,13 @@ namespace yagal::cuda{
 
         char name[128];
         checkCudaErrors(cuDeviceGetName(name, 128, cudaDevice));
-        std::cout << "Using CUDA Device [0]: " << name << std::endl;
+        _p.info() << "Using CUDA Device [0]: " << name << std::endl;
 
         int devMajor, devMinor;
         checkCudaErrors(cuDeviceComputeCapability(&devMajor, &devMinor, cudaDevice));
-        std::cout << "Device Compute Capability: " << devMajor << "." << devMinor << std::endl;
+        _p.info() << "Device Compute Capability: " << devMajor << "." << devMinor << std::endl;
         if (devMajor < 2) {
-            std::cerr << "CUDA ERROR: Device 0 is not SM 2.0 or greater" << std::endl;
+            _p.error() << "CUDA ERROR: Device 0 is not SM 2.0 or greater" << std::endl;
         }
     }
 

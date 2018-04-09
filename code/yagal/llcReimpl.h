@@ -20,6 +20,9 @@
 
 
 namespace yagal::generator::llc{
+    namespace {
+        static printer::Printer _p("llc", printer::Printer::Mode::Silent);
+    }
 
     std::string compileModule(llvm::LLVMContext& context, llvm::Module& module){
         std::string arch("nvptx64");
