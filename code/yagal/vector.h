@@ -13,6 +13,7 @@ namespace yagal{
     template <typename T>
     class Vector{
     private:
+        static printer::Printer _p("vector", printer::Printer::Mode::Silent);
         CUdeviceptr _devicePtr;
         size_t _count;
 
@@ -36,11 +37,12 @@ namespace yagal{
         {}
 
         void dump(){
+            auto& o = _p.debug();
             std::vector<T> v(*this);
             for (const T& e : v){
-                std::cout << e << " ";
+                o << e << " ";
             }
-            std::cout << std::endl;
+            o << std::endl;
         }
 
         //the do/execute function, genererer kernel og eksekverer
@@ -51,7 +53,7 @@ namespace yagal{
 
         //functions
         Vector<T>& map(std::function<T(T)> lambda){
-            //std::cout << "Map queued" << std::endl;
+            _p.info()<< "Map queued" << std::endl;
             return *this;
         }
 

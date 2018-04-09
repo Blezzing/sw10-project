@@ -16,6 +16,10 @@
 #include "llcReimpl.h"
 
 namespace yagal::generator{
+    namespace {
+        static printer::Printer _p("llvmHandler", printer::Printer::Mode::Silent);
+    }
+
     std::string moduleToString(llvm::Module& module){
         std::string ret;
         llvm::raw_string_ostream stream(ret);
