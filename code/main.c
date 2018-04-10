@@ -1,6 +1,6 @@
 #include "yagal/vector.h"
 #include <vector>
-
+/*
 void construction(){
     yagal::cuda::checkDevice();
 
@@ -37,11 +37,11 @@ void map(){
 
     v.map([](int x){return x + 5;}).exec();
 }
-
+*/
 void actual(){
-    yagal::Vector<int> v({1,2,3,4,5,6,7,8,9,0});
+    yagal::Vector<float> v({1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 ,11.0, 12.0, 13.0, 14.0, 15.0, 16.0});
     v.dump();
-    v.add(5).exec();
+    v.add(5).add(4).exec();
     v.dump();
 }
 
