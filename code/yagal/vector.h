@@ -70,8 +70,10 @@ namespace yagal{
 
 
             _p.debug() << ir.toString() << std::endl;
-            auto ptx = yagal::generator::llc::translate(ir.context, ir.module);
-            yagal::cuda::executePtxOnData(ptx, _devicePtr, _count);
+            yagal::generator::PTXModule ptx(ir);
+            auto ptxSource = ptx.toString();
+            _p.debug() << ptx.toString() << std::endl;
+            yagal::cuda::executePtxOnData(ptxSource, _devicePtr, _count);
         }
 
         //functions

@@ -40,6 +40,13 @@ public:
         builder.CreateAlignedStore(ret_val, ptr_val, 4);
     }
 };
+template<>
+class AddAction<int> : public Action {
+public:
+    int value;
+
+    AddAction(int v): value(v) {}
+};
 
 template <typename T>
 class AddToSelfAction : public Action{
