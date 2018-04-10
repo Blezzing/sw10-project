@@ -6,6 +6,7 @@
 #include "cudaHandler.h"
 #include "llvmHandler.h"
 #include "printer.hpp"
+#include "action.hpp"
 
 namespace yagal{
     namespace {
@@ -19,6 +20,7 @@ namespace yagal{
     private:
         CUdeviceptr _devicePtr;
         size_t _count;
+        std::vector<std::shared_ptr<internal::Action>> _actions;
 
     public:
         // Constructors
@@ -46,6 +48,10 @@ namespace yagal{
                 o << e << " ";
             }
             o << std::endl;
+        }
+
+        void add(T value) {
+            _actions.emplace_back(new internal::AddAction<T>(value));
         }
 
         //the do/execute function, genererer kernel og eksekverer
