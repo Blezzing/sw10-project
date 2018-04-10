@@ -38,6 +38,13 @@ void map(){
     v.map([](int x){return x + 5;}).exec();
 }
 
+void actual(){
+    yagal::Vector<int> v({1,2,3,4,5,6,7,8,9,0});
+    v.dump();
+    v.add(5).exec();
+    v.dump();
+}
+
 int main(){
-    plz();
+    actual();
 }

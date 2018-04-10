@@ -10,7 +10,7 @@
 
 namespace yagal{
     namespace {
-        printer::Printer _p("vector", printer::Printer::Mode::Silent);
+        printer::Printer _p("vector", printer::Printer::Mode::Debug);
     }
     // Forward declaration
     template <typename T> class Vector;
@@ -50,13 +50,28 @@ namespace yagal{
             o << std::endl;
         }
 
-        void add(T value) {
+        Vector<T>& add(T value) {
             _actions.emplace_back(new internal::AddAction<T>(value));
+            return *this;
         }
 
         //the do/execute function, genererer kernel og eksekverer
         void exec(){
-            auto ptx = yagal::generator::buildPTX();
+            //We can concatenate actions and do other optimizations here, eg add(5) + add(5) = add(10);
+
+            yagal::generator::IRModule ir;
+
+            auto kernel = ir.createKernel();
+            for (const auto& a : _actions){
+                a->generateIR(ir, kernel);
+            }
+            ir.finalizeKernel(kernel);
+            ir.updateMetadata();
+
+
+            _p.debug() << ir.toString() << std::endl;
+
+            auto ptx = yagal::generator::llc::translate(ir.context, ir.module);
             yagal::cuda::executePtxOnData(ptx, _devicePtr, _count);
         }
 
