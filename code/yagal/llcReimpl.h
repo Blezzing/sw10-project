@@ -70,7 +70,7 @@ namespace yagal::generator::llc{
 
         //do it
         passManager.run(module);
-        _p.info("ir translated to ptx");
+        _p.info() << "ir translated to ptx" << std::endl;
 
 
         return std::string(buffer.begin(), buffer.end());
@@ -81,7 +81,7 @@ namespace yagal::generator::llc{
         LLVMInitializeNVPTXTarget();
         LLVMInitializeNVPTXTargetMC();
         LLVMInitializeNVPTXAsmPrinter();
-        _p.info("initialized llvm target");
+        _p.info() << "initialized llvm target" << std::endl;
 
         llvm::PassRegistry *registry = llvm::PassRegistry::getPassRegistry();
         llvm::initializeCore(*registry);

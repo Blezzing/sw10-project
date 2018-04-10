@@ -18,7 +18,7 @@
 
 namespace yagal::generator{
     namespace {
-        printer::Printer _p("llvmHandler", printer::Printer::Mode::Debug);
+        printer::Printer _p("llvmHandler", printer::Printer::Mode::Verbose);
     }
 
     std::string moduleToString(llvm::Module& module){
