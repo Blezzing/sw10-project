@@ -41,12 +41,25 @@ namespace yagal::generator{
         llvm::LLVMContext context;
         llvm::Module module;
 
+        uint64_t elementsToHandle;
         std::vector<llvm::Function*> kernels;
-        llvm::Function* getThreadIdxIntrinsic;
+        std::vector<llvm::BasicBlock*> userBlocks;
 
-        IRModule(): 
+        //Core function variables
+        llvm::Function* getThreadIdxIntrinsic;
+        llvm::Function* getGridDimxIntrinsic;
+        llvm::Value* currentIndexValue;
+
+        llvm::BasicBlock* loop_body_block;
+        llvm::BasicBlock* loop_end_block;
+        llvm::BasicBlock* loop_inc_block;
+
+
+        IRModule(uint64_t numberOfElements): 
             module("yagalModule", context),
-            getThreadIdxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_tid_x))
+            getThreadIdxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_tid_x)),
+            getGridDimxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_nctaid_x)),
+            elementsToHandle(numberOfElements)
         {
             //Set platform specific variables for the module.
             module.setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v16:16:16-v32:32:32-v64:64:64-v128:128:128-n16:32:64");
@@ -70,23 +83,62 @@ namespace yagal::generator{
             );
             kernel->setCallingConv(llvm::CallingConv::PTX_Kernel);
 
+            auto zeroConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
+            auto sizeConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), elementsToHandle);
+
+            auto entry_block = llvm::BasicBlock::Create(context, "entry", kernel);
+            auto loop_cond_block = llvm::BasicBlock::Create(context, "loop.cond", kernel);
+            loop_body_block = llvm::BasicBlock::Create(context, "loop.body", kernel);
+            loop_inc_block = llvm::BasicBlock::Create(context, "loop.inc", kernel);
+            loop_end_block = llvm::BasicBlock::Create(context, "loop.end", kernel);
+            
+            llvm::IRBuilder<> builder(entry_block);
+            currentIndexValue = builder.CreateAlloca(llvm::Type::getInt32Ty(context), nullptr, "index");
+            builder.CreateStore(zeroConst, currentIndexValue);
+            builder.CreateBr(loop_cond_block);
+
+
+            builder.SetInsertPoint(loop_cond_block);
+            auto iVar = builder.CreateAlignedLoad(currentIndexValue, 4, "i");
+            auto cond = builder.CreateICmpULT(iVar, sizeConst, "cond");
+            builder.CreateCondBr(cond, loop_body_block, loop_end_block);
+
+            builder.SetInsertPoint(loop_inc_block);
+            auto griDimx = builder.CreateCall(getGridDimxIntrinsic, llvm::None, "gdx");
+            auto inc_before = builder.CreateAlignedLoad(currentIndexValue, 4, "i");
+            auto inc_after = builder.CreateAdd(inc_before, griDimx, "inc");
+            builder.CreateStore(inc_after, currentIndexValue);
+            builder.CreateBr(loop_cond_block);
+
+            builder.SetInsertPoint(loop_end_block);
+            builder.CreateRetVoid();
+            
+
             return kernel;
         }
 
         //Creates the return point of a kernel, and links blocks together, to effectively make them labels.
         void finalizeKernel(llvm::Function* kernel){
-            auto exit_block = llvm::BasicBlock::Create(context, "exit", kernel);
-            llvm::IRBuilder<> builder(exit_block);
-            builder.CreateRetVoid();
-
-            auto thisBB = kernel->begin();
-            auto nextBB = kernel->begin(); nextBB++;
+            llvm::IRBuilder<> builder(loop_body_block);
             
-            while(nextBB != kernel->end()){
-                builder.SetInsertPoint(&(*thisBB));
-                builder.CreateBr(&(*nextBB));
-                thisBB++; nextBB++;
+            if(userBlocks.empty()){
+                builder.CreateBr(loop_inc_block);
+                return;
             }
+
+
+            auto currBB = userBlocks.begin(); 
+            auto nextBB = userBlocks.begin(); nextBB++;
+            builder.CreateBr(*currBB);
+
+            while(nextBB != userBlocks.end()){
+                builder.SetInsertPoint(*currBB);
+                builder.CreateBr(*nextBB);
+                currBB++; nextBB++;
+            }
+            
+            builder.SetInsertPoint(*currBB);
+            builder.CreateBr(loop_inc_block);
         }
 
         //Update metadata of module to correctly tag the kernel functions.
@@ -174,7 +226,7 @@ namespace yagal::generator{
             //Experimental passes
             llvm::initializeInstructionCombiningPassPass(*registry);
             llvm::initializeDeadMachineInstructionElimPass(*registry);
-
+            
             isLlvmPassRegistryInitialized = true;
             _p.debug() << "initialized llvm pass registry" << std::endl;
         }
@@ -195,7 +247,7 @@ namespace yagal::generator{
             const llvm::Target *target(llvm::TargetRegistry::lookupTarget(arch, triple, error));
             std::string cpuStr("sm_20");
             std::string featureStr("");
-            llvm::CodeGenOpt::Level optLevel(llvm::CodeGenOpt::Aggressive);
+            llvm::CodeGenOpt::Level optLevel(llvm::CodeGenOpt::Aggressive); //Default results in some extra stores
             llvm::TargetOptions options;
 
             //Create target machine

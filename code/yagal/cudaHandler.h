@@ -20,9 +20,7 @@ namespace yagal::cuda{
 
         auto& o = _p.error();
 
-        o << "CUDA ERROR: ";
-
-        const char* str = NULL;
+        const char* str;
         cuGetErrorString(err, &str);
         if (!str){
             o << "cuda error with unrecognized error value " << sufix << std::endl;
@@ -31,7 +29,7 @@ namespace yagal::cuda{
 
         o << str << " " << sufix << std::endl;
 
-        assert(err == CUDA_SUCCESS);
+        exit(1);
     }
 
     void initIfNeeded(){
@@ -41,11 +39,11 @@ namespace yagal::cuda{
             checkCudaErrors(cuInit(0));
             checkCudaErrors(cuDeviceGetCount(&cudaDeviceCount));
             checkCudaErrors(cuDeviceGet(&cudaDevice, 0));
-            _p.info() << "cuda device initialized" << std::endl;
+            _p.debug() << "cuda device initialized" << std::endl;
         }
 
         checkCudaErrors(cuCtxCreate(&cudaContext, 0, cudaDevice));
-        _p.info() << "cuda context created" << std::endl;
+        _p.debug() << "cuda context created" << std::endl;
     }
 
     void checkDevice(){
@@ -53,22 +51,22 @@ namespace yagal::cuda{
 
         char name[128];
         checkCudaErrors(cuDeviceGetName(name, 128, cudaDevice));
-        _p.info() << "Using CUDA Device [0]: " << name << std::endl;
+        _p.debug() << "Using CUDA Device [0]: " << name << std::endl;
 
         int devMajor, devMinor;
         checkCudaErrors(cuDeviceComputeCapability(&devMajor, &devMinor, cudaDevice));
-        _p.info() << "Device Compute Capability: " << devMajor << "." << devMinor << std::endl;
+        _p.debug() << "Device Compute Capability: " << devMajor << "." << devMinor << std::endl;
         if (devMajor < 2) {
-            _p.error() << "CUDA ERROR: Device 0 is not SM 2.0 or greater" << std::endl;
+            _p.error() << "CUDA Device 0 is not SM 2.0 or greater" << std::endl;
         }
     }
 
     void copyToHost(void* dest, CUdeviceptr src, size_t size){
-        cuMemcpyDtoH(dest, src, size);
+        checkCudaErrors(cuMemcpyDtoH(dest, src, size), "at copyToHost");
     }
 
     void copyToDevice(CUdeviceptr dest, const void* src, size_t size){
-        cuMemcpyHtoD(dest, src, size);
+        checkCudaErrors(cuMemcpyHtoD(dest, src, size), "at copyToDevice");
     }
 
     CUdeviceptr malloc(size_t size){
@@ -83,12 +81,6 @@ namespace yagal::cuda{
     void free(CUdeviceptr device_ptr){
         auto status = cuMemFree(device_ptr);
         checkCudaErrors(status,  "at free");
-    }
-
-    std::string loadPTXToString(const std::string& filename){
-        std::ifstream file(filename);
-        std::string str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        return str;
     }
 
     int executePtxOnData(const std::string& ptx, CUdeviceptr data_ptr, size_t n){

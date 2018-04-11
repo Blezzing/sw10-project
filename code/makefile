@@ -9,6 +9,12 @@ cxxflags = -fno-rtti
 
 all: exec strip
 	
+j:
+	$(cc) jmain.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
+
+m:
+	$(cc) mmain.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
+
 exec:
 	$(cc) main.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
 

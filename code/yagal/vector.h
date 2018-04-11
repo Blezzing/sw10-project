@@ -59,7 +59,7 @@ namespace yagal{
         void exec(){
             //We can concatenate actions and do other optimizations here, eg add(5) + add(5) = add(10);
 
-            yagal::generator::IRModule ir;
+            yagal::generator::IRModule ir(_count);
 
             auto kernel = ir.createKernel();
             for (const auto& a : _actions){
