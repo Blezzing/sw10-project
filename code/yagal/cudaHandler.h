@@ -116,6 +116,7 @@ namespace yagal::cuda{
 
         // Cleanup
         checkCudaErrors(cuModuleUnload(cudaModule));
+        _p.info() << "cuda kernel executed successfully" << std::endl;
 
         return 0;
     }

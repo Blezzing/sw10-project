@@ -103,7 +103,8 @@ namespace yagal{
             auto ptxSource = ptx.toString();
             _p.debug() << ptx.toString() << std::endl;
             yagal::cuda::executePtxWithParams(ptxSource, devicePointers);
-            //yagal::cuda::executePtxOnData(ptxSource, _devicePtr, _devicePtr, _count);
+
+            return *this;
         }
 
         std::vector<T> copyToHostVector(){
