@@ -71,10 +71,11 @@ namespace yagal::generator{
         //Create a function ready for insertion with a IRBuilder.
         //TODO: Make this able to construct kernels with different numbers of parameters.
         //TODO: Make this use the function vector to allow easier management of kernel.
-        llvm::Function* createKernel(){
-            std::vector<llvm::Type *> kernel_arg_types{
-                llvm::Type::getFloatPtrTy(context, 1)
-            };
+        llvm::Function* createKernel(int numberOfParameters){
+            std::vector<llvm::Type *> kernel_arg_types;
+            for(int i = 0; i < numberOfParameters; i++){
+                kernel_arg_types.push_back(llvm::Type::getFloatPtrTy(context, 1));
+            }
             auto kernel = llvm::Function::Create(
                 llvm::FunctionType::get(llvm::Type::getVoidTy(context), kernel_arg_types, false),
                 llvm::Function::ExternalLinkage,
@@ -96,7 +97,6 @@ namespace yagal::generator{
             currentIndexValue = builder.CreateAlloca(llvm::Type::getInt32Ty(context), nullptr, "index");
             builder.CreateStore(zeroConst, currentIndexValue);
             builder.CreateBr(loop_cond_block);
-
 
             builder.SetInsertPoint(loop_cond_block);
             auto iVar = builder.CreateAlignedLoad(currentIndexValue, 4, "i");

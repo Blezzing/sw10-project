@@ -2,11 +2,25 @@
 
 #include <algorithm>
 
+void clusterfuck(){
+    yagal::Vector<float> v({1.0, 2.0, 3.0, 4.0, 5.0});
+    yagal::Vector<float> v2({5.0, 4.0, 3.0, 2.0, 1.0});
+    v.dump();
+    v.add(v2).exec();
+    v.dump();
+    v2.dump();
+}
+
+void saxpy(){
+    float a = 5;
+    yagal::Vector<float> x({0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0});
+    yagal::Vector<float> y({5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0});
+
+    x.multiply(a).add(y).exec();
+
+    x.dump();
+}
+
 int main(){
-    std::vector<float> std_v(512);
-    std::generate(std_v.begin(), std_v.end(), [](){return 0.0;});
-    yagal::Vector<float> v(std_v);
-    v.dump();
-    v.add(1).add(1).exec();
-    v.dump();
+    saxpy();
 }
