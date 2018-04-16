@@ -37,6 +37,11 @@ namespace yagal::generator{
     //Contains the logic to configure a llvm module and provide functions for the rest of the library to add functionality to a module
     //REQUIRES the use of createKernel() -> add functionality to the kernel -> finalizeKernel(kernel) work flow.
     class IRModule{
+    private:
+        llvm::BasicBlock* entry_block;
+        llvm::BasicBlock* loop_cond_block;
+        llvm::BasicBlock* loop_end_block;
+        llvm::BasicBlock* loop_inc_block;
     public:
         llvm::LLVMContext context;
         llvm::Module module;
@@ -49,10 +54,6 @@ namespace yagal::generator{
         llvm::Function* getThreadIdxIntrinsic;
         llvm::Function* getGridDimxIntrinsic;
         llvm::Value* currentIndexValue;
-
-        llvm::BasicBlock* loop_body_block;
-        llvm::BasicBlock* loop_end_block;
-        llvm::BasicBlock* loop_inc_block;
 
 
         IRModule(uint64_t numberOfElements): 
@@ -86,10 +87,10 @@ namespace yagal::generator{
 
             auto zeroConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0);
             auto sizeConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), elementsToHandle);
+            int alignment = 4;
 
-            auto entry_block = llvm::BasicBlock::Create(context, "entry", kernel);
-            auto loop_cond_block = llvm::BasicBlock::Create(context, "loop.cond", kernel);
-            loop_body_block = llvm::BasicBlock::Create(context, "loop.body", kernel);
+            entry_block = llvm::BasicBlock::Create(context, "entry", kernel);
+            loop_cond_block = llvm::BasicBlock::Create(context, "loop.cond", kernel);
             loop_inc_block = llvm::BasicBlock::Create(context, "loop.inc", kernel);
             loop_end_block = llvm::BasicBlock::Create(context, "loop.end", kernel);
             
@@ -98,38 +99,36 @@ namespace yagal::generator{
             builder.CreateStore(zeroConst, currentIndexValue);
             builder.CreateBr(loop_cond_block);
 
-            builder.SetInsertPoint(loop_cond_block);
-            auto iVar = builder.CreateAlignedLoad(currentIndexValue, 4, "i");
-            auto cond = builder.CreateICmpULT(iVar, sizeConst, "cond");
-            builder.CreateCondBr(cond, loop_body_block, loop_end_block);
-
             builder.SetInsertPoint(loop_inc_block);
             auto griDimx = builder.CreateCall(getGridDimxIntrinsic, llvm::None, "gdx");
-            auto inc_before = builder.CreateAlignedLoad(currentIndexValue, 4, "i");
+            auto inc_before = builder.CreateAlignedLoad(currentIndexValue, alignment, "i");
             auto inc_after = builder.CreateAdd(inc_before, griDimx, "inc");
             builder.CreateStore(inc_after, currentIndexValue);
             builder.CreateBr(loop_cond_block);
 
             builder.SetInsertPoint(loop_end_block);
             builder.CreateRetVoid();
-            
 
             return kernel;
         }
 
         //Creates the return point of a kernel, and links blocks together, to effectively make them labels.
         void finalizeKernel(llvm::Function* kernel){
-            llvm::IRBuilder<> builder(loop_body_block);
+            llvm::IRBuilder<> builder(loop_cond_block);
             
             if(userBlocks.empty()){
-                builder.CreateBr(loop_inc_block);
+                builder.CreateBr(loop_end_block);
                 return;
             }
 
+            auto sizeConst = llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), elementsToHandle);
+            int alignment = 4;
+            auto iVar = builder.CreateAlignedLoad(currentIndexValue, alignment, "i");
+            auto cond = builder.CreateICmpULT(iVar, sizeConst, "cond");
 
             auto currBB = userBlocks.begin(); 
             auto nextBB = userBlocks.begin(); nextBB++;
-            builder.CreateBr(*currBB);
+            builder.CreateCondBr(cond, *currBB, loop_end_block);
 
             while(nextBB != userBlocks.end()){
                 builder.SetInsertPoint(*currBB);

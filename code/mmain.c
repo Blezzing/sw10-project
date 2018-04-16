@@ -16,7 +16,7 @@ void saxpy(){
     yagal::Vector<float> x({0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0});
     yagal::Vector<float> y({5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0});
 
-    x.multiply(a).add(y).exec();
+    x.add(a).add(a).exec();
 
     x.dump();
 }
@@ -28,11 +28,11 @@ void woah(){
     yagal::Vector<float> d({5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0});
     yagal::Vector<float> e({50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 50.0});
 
-    a.add(b).add(c).add(d.add(e).exec()).exec();
+// f
 
     a.dump();
 }
 
 int main(){
-    woah();
+    saxpy();
 }

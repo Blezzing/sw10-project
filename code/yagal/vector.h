@@ -56,14 +56,39 @@ namespace yagal{
             return *this;
         }
 
+        Vector<T>& subtract(T value) {
+            _actions.emplace_back(new internal::SubAction<T>(value));
+            return *this;
+        }
+
         Vector<T>& multiply(T value) {
             _actions.emplace_back(new internal::MultAction<T>(value));
+            return *this;
+        }
+
+        Vector<T>& divide(T value) {
+            _actions.emplace_back(new internal::DivAction<T>(value));
             return *this;
         }
 
         //Mutaters that transform a vector with another vector
         Vector<T>& add(Vector<T>& other){
             _actions.emplace_back(new internal::AddVectorAction<T>(other));
+            return *this;
+        }
+
+        Vector<T>& subtract(Vector<T>& other){
+            _actions.emplace_back(new internal::SubVectorAction<T>(other));
+            return *this;
+        }
+
+        Vector<T>& multiply(Vector<T>& other){
+            _actions.emplace_back(new internal::MultVectorAction<T>(other));
+            return *this;
+        }
+
+        Vector<T>& divide(Vector<T>& other){
+            _actions.emplace_back(new internal::DivVectorAction<T>(other));
             return *this;
         }
 
