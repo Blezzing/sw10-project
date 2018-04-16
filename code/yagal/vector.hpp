@@ -3,8 +3,8 @@
 #include <vector>
 #include <functional>
 
-#include "cudaHandler.h"
-#include "llvmHandler.h"
+#include "cudaHandler.hpp"
+#include "llvmHandler.hpp"
 #include "printer.hpp"
 #include "action.hpp"
 
@@ -137,12 +137,6 @@ namespace yagal{
             return *this;
         }
 
-        std::vector<T> copyToHostVector(){
-            std::vector<T> result(_count);
-            yagal::cuda::copyToHost(result.data(), _devicePtr, _count * sizeof(T));
-            return result;
-        }
-
         T getElement(int index){
             T result;
             yagal::cuda::copyToHost(&result, _devicePtr+(index*sizeof(T)), sizeof(T));
@@ -159,7 +153,9 @@ namespace yagal{
 
         //auto conversion to std vector to allow use of std vector function
         operator std::vector<T>(){
-            return copyToHostVector();
+            std::vector<T> result(_count);
+            yagal::cuda::copyToHost(result.data(), _devicePtr, _count * sizeof(T));
+            return result;
         }
 
         // Destructor
