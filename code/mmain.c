@@ -18,6 +18,8 @@ void saxpy(){
 
     x.add(a).add(a).exec();
 
+    x.add(a).add(a).exec();
+
     x.dump();
 }
 

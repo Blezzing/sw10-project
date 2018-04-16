@@ -122,12 +122,17 @@ namespace yagal{
             ir.finalizeKernel(kernel);
             ir.updateMetadata();
 
-
+            //Generate code
             _p.debug() << ir.toString() << std::endl;
             yagal::generator::PTXModule ptx(ir);
             auto ptxSource = ptx.toString();
             _p.debug() << ptx.toString() << std::endl;
+            
+            //Execute kernel
             yagal::cuda::executePtxWithParams(ptxSource, devicePointers);
+
+            //Cleanup
+            _actions.clear();
 
             return *this;
         }
