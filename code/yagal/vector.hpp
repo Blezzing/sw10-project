@@ -100,11 +100,9 @@ namespace yagal{
             yagal::generator::IRModule ir(_count);
 
             //Count number of cuda parameters needed, starting at 1 to include the vector itself.
-            int totalVectorCount = 1;
             std::vector<CUdeviceptr*> devicePointers({&_devicePtr});
             for (auto& a : _actions){
                 if(a->requiresCudaParameter()){
-                    totalVectorCount++;
                     auto pa = static_cast<internal::ParameterAction<T>*>(a.get());
                     auto ptr = pa->getDevicePtrPtr();
                     devicePointers.push_back(ptr);
@@ -113,7 +111,7 @@ namespace yagal{
 
             //Generate llvm ir blocks.
             int inputVectorCounter = 0;
-            auto kernel = ir.createKernel(totalVectorCount);
+            auto kernel = ir.createKernel(devicePointers.size());
             for (const auto& a : _actions){
                 a->generateIR(ir, kernel, inputVectorCounter);
             }
