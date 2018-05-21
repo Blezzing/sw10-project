@@ -94,7 +94,7 @@ namespace yagal{
 
 
         //the do/execute function, genererer kernel og eksekverer
-        Vector<T>& exec(){
+        Vector<T>& exec(std::tuple<int, int, int> blockDimensions = {128, 1, 1}, std::tuple<int, int, int> gridDimensions = {128, 1, 1}){
             //We can concatenate actions and do other optimizations here, eg add(5) + add(5) = add(10);
 
             yagal::generator::IRModule ir(_count);
@@ -127,7 +127,7 @@ namespace yagal{
             _p.debug() << ptx.toString() << std::endl;
             
             //Execute kernel
-            yagal::cuda::executePtxWithParams(ptxSource, devicePointers);
+            yagal::cuda::executePtxWithParams(ptxSource, devicePointers, blockDimensions, gridDimensions);
 
             //Cleanup
             _actions.clear();
