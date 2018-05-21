@@ -16,7 +16,7 @@ m:
 	$(cc) mmain.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
 
 exec:
-	$(cc) main.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
+	$(cc) main.cpp $(cxxflags) $(ldflags) $(includes) -o $(execname)
 
 strip:
 	strip $(execname)

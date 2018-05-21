@@ -10,7 +10,7 @@
 
 namespace yagal{
     namespace {
-        printer::Printer _p("vector", printer::Printer::Mode::Debug);
+        printer::Printer _p("vector", printer::Printer::Mode::Verbose);
     }
     // Forward declaration
     template <typename T> class Vector;
@@ -135,6 +135,44 @@ namespace yagal{
             return *this;
         }
 
+        std::string exportPtx(bool clearActions = true){
+            yagal::generator::IRModule ir(_count);
+
+            //Count number of cuda parameters needed, starting at 1 to include the vector itself.
+            std::vector<CUdeviceptr*> devicePointers({&_devicePtr});
+            for (auto& a : _actions){
+                if(a->requiresCudaParameter()){
+                    auto pa = static_cast<internal::ParameterAction<T>*>(a.get());
+                    auto ptr = pa->getDevicePtrPtr();
+                    devicePointers.push_back(ptr);
+                }
+            }
+
+            //Generate llvm ir blocks.
+            int inputVectorCounter = 0;
+            auto kernel = ir.createKernel(devicePointers.size());
+            for (const auto& a : _actions){
+                a->generateIR(ir, kernel, inputVectorCounter);
+            }
+
+            //Link blocks and update metadata.
+            ir.finalizeKernel(kernel);
+            ir.updateMetadata();
+
+            //Generate code
+            _p.debug() << ir.toString() << std::endl;
+            yagal::generator::PTXModule ptx(ir);
+            auto ptxSource = ptx.toString();
+            _p.debug() << ptx.toString() << std::endl;
+
+            //Cleanup
+            if(clearActions){
+                _actions.clear();
+            }
+
+            return ptxSource;
+        }
+
         T getElement(int index){
             T result;
             yagal::cuda::copyToHost(&result, _devicePtr+(index*sizeof(T)), sizeof(T));
@@ -147,6 +185,10 @@ namespace yagal{
 
         CUdeviceptr* getDevicePtrPtr(){
             return &_devicePtr;
+        }
+
+        size_t getSize() const{
+            return _count;
         }
 
         //auto conversion to std vector to allow use of std vector function

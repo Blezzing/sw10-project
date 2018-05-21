@@ -30,7 +30,7 @@
 
 namespace yagal::generator{
     namespace {
-        printer::Printer _p("llvmHandler", printer::Printer::Mode::Verbose);
+        printer::Printer _p("llvmHandler", printer::Printer::Mode::Debug);
     }
 
     //Representation of a module in llvm ir.
@@ -63,7 +63,7 @@ namespace yagal::generator{
             elementsToHandle(numberOfElements)
         {
             //Set platform specific variables for the module.
-            module.setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v16:16:16-v32:32:32-v64:64:64-v128:128:128-n16:32:64");
+            //module.setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v16:16:16-v32:32:32-v64:64:64-v128:128:128-n16:32:64");
             module.setTargetTriple("nvptx64-nvidia-cuda");
 
             _p.debug() << "ir module constructed" << std::endl;
@@ -272,7 +272,9 @@ namespace yagal::generator{
             llvm::MachineModuleInfo *mmi = new llvm::MachineModuleInfo(&llvmtm);
 
             //Reset data layout of module
+            _p.debug() << "DataLayout before: " << ir.module.getDataLayoutStr() << std::endl;
             ir.module.setDataLayout(targetMachine->createDataLayout());
+            _p.debug() << "DataLayout after: " << ir.module.getDataLayoutStr() << std::endl;
             targetMachine->addPassesToEmitFile(passManager, *outputStream, llvm::TargetMachine::CGFT_AssemblyFile, false, mmi);
 
             //Run passes on module

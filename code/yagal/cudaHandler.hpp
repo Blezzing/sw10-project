@@ -83,7 +83,7 @@ namespace yagal::cuda{
         checkCudaErrors(status,  "at free");
     }
 
-    int executePtxWithParams(const std::string& ptx, std::vector<CUdeviceptr*>& kernelParams){
+    int executePtxWithParams(const std::string& ptx, const std::vector<CUdeviceptr*>& kernelParams, std::tuple<int, int, int> blockDimensions = {128, 1, 1}, std::tuple<int, int, int> gridDimensions = {128, 1, 1}){
         CUmodule    cudaModule;
         CUfunction  function;
         CUlinkState linker;
@@ -99,19 +99,12 @@ namespace yagal::cuda{
 
         // Define where data is, to set kernel params
 
-        // Set kernel configuration
-        unsigned blockSizeX = 16;
-        unsigned blockSizeY = 1;
-        unsigned blockSizeZ = 1;
-        unsigned gridSizeX  = 1;
-        unsigned gridSizeY  = 1;
-        unsigned gridSizeZ  = 1;
-
 
         // Kernel launch
         _p.info() << "cuda kernel launching" << std::endl;
-        checkCudaErrors(cuLaunchKernel(function, gridSizeX, gridSizeY, gridSizeZ,
-                                        blockSizeX, blockSizeY, blockSizeZ,
+        checkCudaErrors(cuLaunchKernel(function, 
+                                        std::get<0>(gridDimensions), std::get<1>(gridDimensions), std::get<2>(gridDimensions),
+                                        std::get<0>(blockDimensions), std::get<1>(blockDimensions), std::get<2>(blockDimensions),
                                         0, NULL, (void**)kernelParams.data(), NULL));
 
         // Cleanup
