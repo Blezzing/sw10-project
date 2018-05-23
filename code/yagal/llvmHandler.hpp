@@ -30,7 +30,7 @@
 
 namespace yagal::generator{
     namespace {
-        printer::Printer _p("llvmHandler", printer::Printer::Mode::Debug);
+        printer::Printer _p("llvmHandler", printer::Printer::Mode::Standard);
     }
 
     //Representation of a module in llvm ir.
@@ -52,6 +52,8 @@ namespace yagal::generator{
 
         //Core function variables
         llvm::Function* getThreadIdxIntrinsic;
+        llvm::Function* getBlockIdxIntrinsic;
+        llvm::Function* getBlockDimxIntrinsic;
         llvm::Function* getGridDimxIntrinsic;
         llvm::Value* currentIndexValue;
 
@@ -59,6 +61,8 @@ namespace yagal::generator{
         IRModule(uint64_t numberOfElements): 
             module("yagalModule", context),
             getThreadIdxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_tid_x)),
+            getBlockIdxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_ctaid_x)),
+            getBlockDimxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_ntid_x)),
             getGridDimxIntrinsic(llvm::Intrinsic::getDeclaration(&module, llvm::Intrinsic::nvvm_read_ptx_sreg_nctaid_x)),
             elementsToHandle(numberOfElements)
         {
@@ -96,13 +100,21 @@ namespace yagal::generator{
             
             llvm::IRBuilder<> builder(entry_block);
             currentIndexValue = builder.CreateAlloca(llvm::Type::getInt32Ty(context), nullptr, "index");
-            builder.CreateStore(zeroConst, currentIndexValue);
+            
+            auto offsetDim = builder.CreateCall(getBlockDimxIntrinsic, llvm::None, "bdx");
+            auto threadIdx = builder.CreateCall(getThreadIdxIntrinsic, llvm::None, "tidx"); 
+            auto blockIdx  = builder.CreateCall(getBlockIdxIntrinsic, llvm::None, "bidx");
+            auto offset    = builder.CreateMul(blockIdx, offsetDim, "offset");
+            auto totalIdx  = builder.CreateAdd(threadIdx, offset, "tx");
+            builder.CreateStore(totalIdx, currentIndexValue);
             builder.CreateBr(loop_cond_block);
 
             builder.SetInsertPoint(loop_inc_block);
-            auto griDimx = builder.CreateCall(getGridDimxIntrinsic, llvm::None, "gdx");
+            auto blockDimx  = builder.CreateCall(getBlockDimxIntrinsic, llvm::None, "bdx");
+            auto gridDimx   = builder.CreateCall(getGridDimxIntrinsic, llvm::None, "gdx");
+            auto totalDimx  = builder.CreateMul(blockDimx, gridDimx, "tdx");
             auto inc_before = builder.CreateAlignedLoad(currentIndexValue, alignment, "i");
-            auto inc_after = builder.CreateAdd(inc_before, griDimx, "inc");
+            auto inc_after  = builder.CreateAdd(inc_before, totalDimx, "inc");
             builder.CreateStore(inc_after, currentIndexValue);
             builder.CreateBr(loop_cond_block);
 

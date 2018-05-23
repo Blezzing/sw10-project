@@ -10,7 +10,7 @@
 
 namespace yagal{
     namespace {
-        printer::Printer _p("vector", printer::Printer::Mode::Verbose);
+        printer::Printer _p("vector", printer::Printer::Mode::Standard);
     }
     // Forward declaration
     template <typename T> class Vector;
@@ -133,6 +133,19 @@ namespace yagal{
             _actions.clear();
 
             return *this;
+        }
+
+        Vector<T>& exec(const std::string& ptxSource, const std::vector<CUdeviceptr*>& otherVectors, std::tuple<int, int, int> blockDimensions = {128, 1, 1}, std::tuple<int, int, int> gridDimensions = {128, 1, 1}){
+            std::vector<CUdeviceptr*> devicePointers({&_devicePtr});
+            for(const auto& e: otherVectors){
+                devicePointers.push_back(e);
+            }
+
+            //Execute kernel
+            yagal::cuda::executePtxWithParams(ptxSource, devicePointers, blockDimensions, gridDimensions);
+
+            //Cleanup
+            _actions.clear();
         }
 
         std::string exportPtx(bool clearActions = true){

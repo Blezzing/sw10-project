@@ -12,7 +12,7 @@ namespace yagal{
 
 namespace yagal::internal{
     namespace{
-        printer::Printer _p("action", printer::Printer::Mode::Debug);
+        printer::Printer _p("action", printer::Printer::Mode::Standard);
     }
 
     //Base class, provide base functionality

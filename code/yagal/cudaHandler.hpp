@@ -8,7 +8,7 @@
 
 namespace yagal::cuda{
     namespace {
-        printer::Printer _p("cudaHandler", printer::Printer::Mode::Debug);
+        printer::Printer _p("cudaHandler", printer::Printer::Mode::Standard);
     }
 
     CUdevice   cudaDevice;
