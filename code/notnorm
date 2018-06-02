@@ -1,0 +1,61 @@
+./first
+[DEBUG] cudaHandler: cuda device initialized
+[DEBUG] cudaHandler: cuda context created
+[DEBUG] action: generateIR for add action called.
+[DEBUG] action: generateIR for add action called.
+[DEBUG] vector: ; ModuleID = 'yagalModule'
+source_filename = "yagalModule"
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v16:16:16-v32:32:32-v64:64:64-v128:128:128-n16:32:64"
+target triple = "nvptx64-nvidia-cuda"
+
+; Function Attrs: nounwind readnone
+declare i32 @llvm.nvvm.read.ptx.sreg.tid.x() #0
+
+; Function Attrs: nounwind readnone
+declare i32 @llvm.nvvm.read.ptx.sreg.nctaid.x() #0
+
+define ptx_kernel void @kernel(float addrspace(1)* %vec) {
+entry:
+  %index = alloca i32
+  store i32 0, i32* %index
+  br label %loop.cond
+
+loop.cond:                                        ; preds = %loop.inc, %entry
+  %i6 = load i32, i32* %index, align 4
+  %cond = icmp ult i32 %i6, 10
+  br i1 %cond, label %bb0, label %loop.end
+
+loop.inc:                                         ; preds = %bb1
+  %gdx = call i32 @llvm.nvvm.read.ptx.sreg.nctaid.x()
+  %i = load i32, i32* %index, align 4
+  %inc = add i32 %i, %gdx
+  store i32 %inc, i32* %index
+  br label %loop.cond
+
+loop.end:                                         ; preds = %loop.cond
+  ret void
+
+bb0:                                              ; preds = %loop.cond
+  %i1 = load i32, i32* %index, align 4
+  %ptr = getelementptr float, float addrspace(1)* %vec, i32 %i1
+  %tmp = load float, float addrspace(1)* %ptr, align 4
+  %ret = fadd float %tmp, 5.000000e+00
+  store float %ret, float addrspace(1)* %ptr, align 4
+  br label %bb1
+
+bb1:                                              ; preds = %bb0
+  %i2 = load i32, i32* %index, align 4
+  %ptr3 = getelementptr float, float addrspace(1)* %vec, i32 %i2
+  %tmp4 = load float, float addrspace(1)* %ptr3, align 4
+  %ret5 = fadd float %tmp4, 5.000000e+00
+  store float %ret5, float addrspace(1)* %ptr3, align 4
+  br label %loop.inc
+}
+
+attributes #0 = { nounwind readnone }
+
+!nvvm.annotations = !{!0}
+
+!0 = !{void (float addrspace(1)*)* @kernel, !"kernel", i32 1}
+
+makefile:25: recipe for target 'run' failed

@@ -95,11 +95,8 @@ namespace yagal{
 
         //the do/execute function, genererer kernel og eksekverer
         Vector<T>& exec(std::tuple<int, int, int> blockDimensions = {128, 1, 1}, std::tuple<int, int, int> gridDimensions = {128, 1, 1}){
-            //We can concatenate actions and do other optimizations here, eg add(5) + add(5) = add(10);
-
-            yagal::generator::IRModule ir(_count);
-
-            //Count number of cuda parameters needed, starting at 1 to include the vector itself.
+            auto ptxSource = exportPtx(false);
+            
             std::vector<CUdeviceptr*> devicePointers({&_devicePtr});
             for (auto& a : _actions){
                 if(a->requiresCudaParameter()){
@@ -109,23 +106,6 @@ namespace yagal{
                 }
             }
 
-            //Generate llvm ir blocks.
-            int inputVectorCounter = 0;
-            auto kernel = ir.createKernel(devicePointers.size());
-            for (const auto& a : _actions){
-                a->generateIR(ir, kernel, inputVectorCounter);
-            }
-
-            //Link blocks and update metadata.
-            ir.finalizeKernel(kernel);
-            ir.updateMetadata();
-
-            //Generate code
-            _p.debug() << ir.toString() << std::endl;
-            yagal::generator::PTXModule ptx(ir);
-            auto ptxSource = ptx.toString();
-            _p.debug() << ptx.toString() << std::endl;
-            
             //Execute kernel
             yagal::cuda::executePtxWithParams(ptxSource, devicePointers, blockDimensions, gridDimensions);
 
@@ -143,27 +123,22 @@ namespace yagal{
 
             //Execute kernel
             yagal::cuda::executePtxWithParams(ptxSource, devicePointers, blockDimensions, gridDimensions);
-
-            //Cleanup
-            _actions.clear();
         }
 
         std::string exportPtx(bool clearActions = true){
             yagal::generator::IRModule ir(_count);
 
             //Count number of cuda parameters needed, starting at 1 to include the vector itself.
-            std::vector<CUdeviceptr*> devicePointers({&_devicePtr});
+            int devicePointerCount = 1;
             for (auto& a : _actions){
                 if(a->requiresCudaParameter()){
-                    auto pa = static_cast<internal::ParameterAction<T>*>(a.get());
-                    auto ptr = pa->getDevicePtrPtr();
-                    devicePointers.push_back(ptr);
+                    devicePointerCount++;
                 }
             }
 
             //Generate llvm ir blocks.
             int inputVectorCounter = 0;
-            auto kernel = ir.createKernel(devicePointers.size());
+            auto kernel = ir.createKernel(devicePointerCount);
             for (const auto& a : _actions){
                 a->generateIR(ir, kernel, inputVectorCounter);
             }

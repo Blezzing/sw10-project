@@ -223,3 +223,9 @@ TSWLatexianTemp*
 
 */a.out
 */plz
+
+#saxpy stuffs
+*saxpy/bolt/Bolt
+*saxpy/pacxx/android
+*saxpy/pacxx/pacxx-llvm
+*saxpy/skelcl/skelcl

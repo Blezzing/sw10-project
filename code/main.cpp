@@ -2,6 +2,7 @@
 #include "yagal/cudaHandler.hpp"
 #include "yagal/cudaExecutor.hpp"
 #include <vector>
+#include <iostream>
 
 #include <chrono>
 typedef std::chrono::high_resolution_clock Clock;
@@ -221,9 +222,62 @@ void intTest(){
     v.dump();
 }
 
+void sanityTest(){
+    std::vector<float> src(1024);
+    std::srand(0);
+    std::generate(src.begin(), src.end(), std::rand);
+    yagal::Vector<float> v1(src);
+    yagal::Vector<float> v2(src);
+
+    yagal::Vector<float> v3(src);
+    yagal::Vector<float> v4(src);
+    yagal::Vector<float> v5(src);
+    yagal::Vector<float> v6(src);
+
+    v1.add(1).exec();
+    v2.exec(v2.add(1).exportPtx(),{});
+
+    v3.multiply(2).exec();
+    v4.add(v5).exec();
+    v5.exec(v5.add(v6).exportPtx(),{v6.getDevicePtrPtr()});
+
+
+    bool success = assertEqual(v1,v2)
+                && assertEqual(v3,v4)
+                && assertEqual(v4,v5);
+
+    std::cout << (success?"We are sane!":"We are NOT sane!") << std::endl;
+}
+
+void timeBuild(){
+    std::vector<float> src(1<<16);
+    std::srand(0);
+    std::generate(src.begin(), src.end(), std::rand);
+    yagal::Vector<float> v(src);
+
+
+    auto t0 = Clock::now();
+    v.add(1).exec();
+    auto t1 = Clock::now();
+    auto ptx = v.add(1).exportPtx();
+    auto t2 = Clock::now();
+    v.exec(ptx,{});
+    auto t3 = Clock::now();
+
+    std::cout 
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << " nanoseconds" 
+        << ": execution including build" << std::endl
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << " nanoseconds" 
+        << ": pure build build" << std::endl
+        << std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count() << " nanoseconds" 
+        << ": pure execution" << std::endl;
+}
+
 int main(){
     //floatTest();
     //intTest();
-    cpuTest();
-    defaultParamterTestOnSmallData();
+    //cpuTest();
+    //defaultParamterTestOnSmallData();
+    sanityTest();
+    timeBuild();
 }
