@@ -1,5 +1,5 @@
 cc = g++
-execname = first
+execname = yagalApplication
 ldflags = -L/usr/local/lib#output of `llvm-config --ldflags`
 cudalibs = -lcuda 
 syslibs = -lrt -ldl -lpthread -lm#output of `llvm-config --system-libs`
@@ -9,12 +9,6 @@ cxxflags = -fno-rtti
 
 all: exec strip
 	
-j:
-	$(cc) jmain.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
-
-m:
-	$(cc) mmain.c $(cxxflags) $(ldflags) $(includes) -o $(execname)
-
 exec:
 	$(cc) main.cpp $(cxxflags) $(ldflags) $(includes) -o $(execname)
 
