@@ -138,7 +138,7 @@ bool assertEqual(const std::vector<float>& v1, const std::vector<float>& v2){
 }
 
 void cpuTest(){
-    std::vector<float> src(100000000);
+    std::vector<float> src(1 << 29);
     std::srand(0);
     std::generate(src.begin(), src.end(), std::rand);
 
@@ -153,7 +153,7 @@ void cpuTest(){
 }
 
 void defaultParamterTest(){
-    std::vector<float> src(100000000);
+    std::vector<float> src(1 << 29);
     std::srand(0);
     std::generate(src.begin(), src.end(), std::rand);
     yagal::Vector<float> v(src);
@@ -273,11 +273,17 @@ void timeBuild(){
         << ": pure execution" << std::endl;
 }
 
+void ptxOptimExample(){
+    yagal::Vector<float> v(100);
+    v.add(5).add(5).exec();
+}
+
 int main(){
     //floatTest();
     //intTest();
     //cpuTest();
-    //defaultParamterTestOnSmallData();
-    sanityTest();
-    timeBuild();
+    //defaultParamterTest();
+    //sanityTest();
+    //timeBuild();
+    ptxOptimExample();
 }

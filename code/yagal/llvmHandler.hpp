@@ -258,7 +258,7 @@ namespace yagal::generator{
             const llvm::Target *target(llvm::TargetRegistry::lookupTarget(arch, triple, error));
             std::string cpuStr("sm_20");
             std::string featureStr("");
-            llvm::CodeGenOpt::Level optLevel(llvm::CodeGenOpt::Aggressive); //Default results in some extra stores
+            llvm::CodeGenOpt::Level optLevel(llvm::CodeGenOpt::Aggresive); //Default results in some extra stores
             llvm::TargetOptions options;
 
             //Create target machine
@@ -312,6 +312,7 @@ namespace yagal::generator{
         //Return copy of string to allo cuda driver to load it
         std::string toString(){
             //Return copy of string
+            std::cout << _string << std::endl;
             return _string;
         }
     };
